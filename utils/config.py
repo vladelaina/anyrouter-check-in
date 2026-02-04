@@ -181,7 +181,11 @@ def load_accounts_config() -> list[AccountConfig] | None:
 				print(f'ERROR: Account {i + 1} name field cannot be empty')
 				return None
 
-			accounts.append(AccountConfig.from_dict(account_dict, i))
+			acc = AccountConfig.from_dict(account_dict, i)
+			# 关键注入：如果 JSON 里有 url 字段，强行塞进对象里，绕过 dataclass 限制
+			if 'url' in account_dict:
+				setattr(acc, 'url', account_dict['url'])
+			accounts.append(acc)
 
 		return accounts
 	except Exception as e:
