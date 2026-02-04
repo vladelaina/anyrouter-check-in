@@ -98,7 +98,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const displayName = remark ? `${remark}_${domain}` : domain;
       currentAccounts.push({
         name: displayName,
-        url: info.url, // 关键：保存该站点的完整网址
+        url: info.url,
+        sign_in_path: info.sign_in_path || '/api/user/sign_in',
         api_user: info.api_user,
         cookies: { session: info.session }
       });
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       content.innerHTML += `
         <div class="account-card">
           <div class="label">备注: <span style="color: #28a745;">${displayName}</span></div>
-          <div class="label">站点: <span style="color: #666; font-size: 11px;">${info.url}</span></div>
+          <div class="label">签到路径: <span style="color: #007bff; font-size: 11px;">${info.sign_in_path || '/api/user/sign_in'}</span></div>
           <div class="label">用户 ID: <span class="value">${info.api_user}</span></div>
         </div>`;
     }

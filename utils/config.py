@@ -182,9 +182,11 @@ def load_accounts_config() -> list[AccountConfig] | None:
 				return None
 
 			acc = AccountConfig.from_dict(account_dict, i)
-			# 关键注入：如果 JSON 里有 url 字段，强行塞进对象里，绕过 dataclass 限制
+			# 关键注入：如果 JSON 里有 url 字段，强行塞进对象里
 			if 'url' in account_dict:
 				setattr(acc, 'url', account_dict['url'])
+			if 'sign_in_path' in account_dict:
+				setattr(acc, 'sign_in_path', account_dict['sign_in_path'])
 			accounts.append(acc)
 
 		return accounts

@@ -9,19 +9,17 @@ chrome.storage.local.get('capturedData', (result) => {
   isInitialized = true;
 });
 
-// 监听请求头以捕获 new-api-user
+// 监听请求以捕获 new-api-user 和 签到路径
 chrome.webRequest.onBeforeSendHeaders.addListener(
   (details) => {
-    // 确保数据已从存储加载
     if (!isInitialized) return;
 
     const apiUserHeader = details.requestHeaders.find(h => h.name.toLowerCase() === 'new-api-user');
+    const url = new URL(details.url);
+    const domain = url.hostname;
 
+    // 1. 捕获 User ID
     if (apiUserHeader) {
-      const url = new URL(details.url);
-      const domain = url.hostname;
-
-      // 只要是 new-api 站点，我们就记录或更新
       if (!capturedData[domain] || capturedData[domain].api_user !== apiUserHeader.value) {
         capturedData[domain] = {
           ...capturedData[domain],
@@ -31,9 +29,17 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
         saveData();
       }
     }
+
+    // 2. 捕获签到路径 (通常是 POST 请求，路径包含 sign_in 或 checkin)
+    if (details.method === 'POST' && (url.pathname.includes('sign_in') || url.pathname.includes('checkin'))) {
+      if (capturedData[domain]) {
+        capturedData[domain].sign_in_path = url.pathname;
+        saveData();
+      }
+    }
   },
   { urls: ["<all_urls>"] },
-  ["requestHeaders", "extraHeaders"] // 加入 extraHeaders 增强捕获能力
+  ["requestHeaders", "extraHeaders"]
 );
 
 function saveData() {

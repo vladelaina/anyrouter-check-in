@@ -213,12 +213,16 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 	if custom_url:
 		print(f'[INFO] {account_name}: Using custom URL {custom_url}')
 		from utils.config import ProviderConfig
+
+		# 支持从账号配置中动态读取签到路径
+		custom_sign_in_path = getattr(account, 'sign_in_path', '/api/user/sign_in')
+
 		# 强制开启手动签到路径，确保执行 sign_in 操作
 		provider_config = ProviderConfig(
 			name=account.provider,
 			domain=custom_url,
 			bypass_method=None,
-			sign_in_path='/api/user/sign_in',
+			sign_in_path=custom_sign_in_path,
 			waf_cookie_names=None
 		)
 	else:
