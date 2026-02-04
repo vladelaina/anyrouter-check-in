@@ -213,11 +213,12 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 	if custom_url:
 		print(f'[INFO] {account_name}: Using custom URL {custom_url}')
 		from utils.config import ProviderConfig
-		# 如果带了 URL，我们直接创建一个通用配置，默认不开启 WAF 绕过（因为大多数站点不需要）
+		# 强制开启手动签到路径，确保执行 sign_in 操作
 		provider_config = ProviderConfig(
 			name=account.provider,
 			domain=custom_url,
 			bypass_method=None,
+			sign_in_path='/api/user/sign_in',
 			waf_cookie_names=None
 		)
 	else:
@@ -264,7 +265,8 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 		elif user_info:
 			print(user_info.get('error', 'Unknown error'))
 
-		if provider_config.needs_manual_check_in():
+		# 修正：只要不是 agentrouter 这种特殊站点，自定义 URL 站点一律执行 execute_check_in
+		if custom_url or provider_config.needs_manual_check_in():
 			success = execute_check_in(client, account_name, provider_config, headers)
 			return success, user_info
 		else:
