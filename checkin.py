@@ -213,12 +213,12 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 	if custom_url:
 		print(f'[INFO] {account_name}: Using custom URL {custom_url}')
 		from utils.config import ProviderConfig
-		# 如果带了 URL，我们直接创建一个基于 anyrouter 模板但换了域名的配置
+		# 如果带了 URL，我们直接创建一个通用配置，默认不开启 WAF 绕过（因为大多数站点不需要）
 		provider_config = ProviderConfig(
 			name=account.provider,
 			domain=custom_url,
-			bypass_method='waf_cookies',
-			waf_cookie_names=['acw_tc', 'cdn_sec_tc', 'acw_sc__v2']
+			bypass_method=None,
+			waf_cookie_names=None
 		)
 	else:
 		provider_config = app_config.get_provider(account.provider)
