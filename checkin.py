@@ -207,22 +207,21 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 	account_name = account.get_display_name(account_index)
 	print(f'\n[PROCESSING] Starting to process {account_name}')
 
-	# 逻辑优化：如果 account 本身带有 url 字段，则动态创建一个 provider
-	# 这允许我们在不修改 config.py 结构的情况下支持任意新站点
-	target_provider = account.provider
-	provider_config = app_config.get_provider(target_provider)
-
-	# 检查 account 对象是否有自定义 url (通过 getattr 安全获取，因为 AccountConfig 类里没定义这个字段)
+	# 检查 account 对象是否有自定义 url (通过 getattr 安全获取)
 	custom_url = getattr(account, 'url', None)
-	if not provider_config and custom_url:
-		print(f'[INFO] {account_name}: Detected custom URL {custom_url}, creating temporary provider config')
+
+	if custom_url:
+		print(f'[INFO] {account_name}: Using custom URL {custom_url}')
 		from utils.config import ProviderConfig
+		# 如果带了 URL，我们直接创建一个基于 anyrouter 模板但换了域名的配置
 		provider_config = ProviderConfig(
-			name=target_provider,
+			name=account.provider,
 			domain=custom_url,
 			bypass_method='waf_cookies',
 			waf_cookie_names=['acw_tc', 'cdn_sec_tc', 'acw_sc__v2']
 		)
+	else:
+		provider_config = app_config.get_provider(account.provider)
 
 	if not provider_config:
 		print(f'[FAILED] {account_name}: Provider "{account.provider}" not found in configuration')
